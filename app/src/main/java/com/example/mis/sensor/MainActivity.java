@@ -40,6 +40,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     private List<Entry> zValueList = new ArrayList<>();
     private List<Entry> magnitudeList = new ArrayList<>();
     private Integer axisEntryIndex = 0;
+    private static int chartListSize = 10;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -59,7 +60,6 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
                     Check for permissions, if not present ask for permission
      */
     public void inititalise(){
-        //Log.d("@@@@@@", "In Initialise");
         getSensorData();
     }
     /*
@@ -91,7 +91,6 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     @Override
     public void onSensorChanged(SensorEvent event) {
 
-        Log.d("Events###" , String.valueOf(event));
         updateChartData( event );
     }
 
@@ -100,19 +99,33 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
      */
     public void updateChartData( SensorEvent event ){
         axisEntryIndex += 1;
-        float x,y,z;
+        float x,y,z,magnitude;
         x = event.values[0];
         y = event.values[1];
         z = event.values[2];
+        magnitude = (float) Math.sqrt(Math.pow(x, 2) + Math.pow(y, 2) + Math.pow(z, 2));
+        Log.d("###x" , String.valueOf(x));
+        Log.d("###y" , String.valueOf(y));
+        Log.d("###z" , String.valueOf(z));
+        if(xValueList.size() >= chartListSize)
+            xValueList.remove(0);
+        if(yValueList.size() >= chartListSize)
+            yValueList.remove(0);
+        if(zValueList.size() >= chartListSize)
+            zValueList.remove(0);
+        if( magnitudeList.size() >= chartListSize)
+            magnitudeList.remove(0);
         xValueList.add( new Entry( axisEntryIndex, x));
         yValueList.add( new Entry( axisEntryIndex, y));
         zValueList.add( new Entry( axisEntryIndex, z));
+        magnitudeList.add( new Entry( axisEntryIndex, magnitude));
 
         LineChart graph = (LineChart) findViewById(R.id.dataGraph);
         LineData lineData = new LineData();
         lineData.addDataSet(addLineData( xValueList, "X" , Color.RED));
-        lineData.addDataSet(addLineData( yValueList, "Y" , Color.GREEN));
+        lineData.addDataSet(addLineData( yValueList, "Y" , Color.GREEN ));
         lineData.addDataSet(addLineData( zValueList, "Z" , Color.BLUE));
+        lineData.addDataSet(addLineData( magnitudeList, "Magnitude" , Color.BLACK));
 
         graph.setData(lineData);
         graph.notifyDataSetChanged();
@@ -127,9 +140,13 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         lineDataSet.setColor(lineColor);
         lineDataSet.setValueTextColor(lineColor);
         lineDataSet.setValueTextSize(10);
+        Log.v("@@@@@@@@@@@2lineDataSet" , String.valueOf(lineDataSet));
         return lineDataSet;
     }
 
+    public static void calculateFFT(){
+
+    }
     @Override
     public void onAccuracyChanged(Sensor sensor, int accuracy) {
 
@@ -172,9 +189,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
             for (int i = 0; wsize > i ; i++) {
                 magnitude[i] = Math.sqrt(Math.pow(realPart[i], 2) + Math.pow(imagPart[i], 2));
             }
-
             return magnitude;
-
         }
 
         @Override
@@ -183,7 +198,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
             freqCounts = values;
         }
     }
-    
+
     /**
      * little helper function to fill example with random double values
      */
