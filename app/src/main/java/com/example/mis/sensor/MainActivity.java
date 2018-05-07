@@ -1,13 +1,17 @@
 package com.example.mis.sensor;
 
+import android.Manifest;
 import android.content.Context;
+import android.content.pm.PackageManager;
 import android.graphics.Color;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
 import android.location.LocationManager;
+import android.media.MediaPlayer;
 import android.os.AsyncTask;
+import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
@@ -39,11 +43,12 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     private static int chartListSize = 10;
     private SeekBar sampleRateSeekBar, fftWindowSizeSeekBar;
     private TextView sampleRateValue, fftSeekBarValue;
-    private String joggingSongName = "These_Days.mp3";
-    private String bikeSongName = "Total_Breakdown.mp3";
     private int sampleRate, fftWindowSize;
     private int axisEntryIndex = 0, wSize = 64, magnitudeIndex = 0;
     private double[] magnitudeArray = new double[wSize];
+    private MediaPlayer musicJogging, musicBiking;
+    private LocationManager mLocationManager;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -52,9 +57,9 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         inititalise();
 
         //initiate and fill example array with random values
-        rndAccExamplevalues = new double[64];
+        /*rndAccExamplevalues = new double[64];
         randomFill(rndAccExamplevalues);
-        new FFTAsynctask(64).execute(rndAccExamplevalues);
+        new FFTAsynctask(64).execute(rndAccExamplevalues);*/
     }
 
     /*
@@ -62,9 +67,10 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
                     Check for permissions, if not present ask for permission
      */
     public void inititalise(){
-
         getSensorData();
         initialiseSeekBarAndLabel();
+        inititaliseMediaPlayer();
+        initialiseLocationService();
     }
 
     /*
@@ -131,6 +137,27 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
                 magnitudeArray = new double[wSize];
             }
         });
+    }
+
+    /*
+        @Purpose: To initialise media for playing music while joggine/biking
+    */
+    public void inititaliseMediaPlayer(){
+        musicJogging = MediaPlayer.create(this, R.raw.these_days);
+        musicBiking = MediaPlayer.create(this, R.raw.total_breakdown);
+    }
+
+    public void initialiseLocationService(){
+        mLocationManager = (LocationManager) this.getSystemService(Context.LOCATION_SERVICE);
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION )
+                != PackageManager.PERMISSION_GRANTED
+            && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
+                != PackageManager.PERMISSION_GRANTED){
+
+            HelperClass.showToastMessage("No location permission" , this);
+            ActivityCompat.requestPermissions(this,
+                                        new String[]{Manifest.permission.ACCESS_FINE_LOCATION},1);
+        }
     }
     /*
         @Purpose: Initialise Sensor
@@ -228,6 +255,8 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         fftGraph.setData(lineData);
         fftGraph.notifyDataSetChanged();
         fftGraph.invalidate();
+
+        updateMusic();
     }
 
     /*
@@ -250,7 +279,24 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
 
     @Override public void onStopTrackingTouch(SeekBar seekBar) { }
 
-    private void playMusic(){}
+    private void updateMusic(){
+        double[] freqCountsTemp;
+        double avgFreq = 0.0;
+        freqCountsTemp = freqCounts;
+        for (int i=0; i< freqCountsTemp.length; i++){
+            avgFreq += freqCountsTemp[i];
+            avgFreq = avgFreq/freqCountsTemp.length;
+        }
+        Log.d("####avgFreq:" , String.valueOf(avgFreq));
+        if( avgFreq < 1){
+            musicJogging.start();
+            musicBiking.pause();
+        }
+        else if( avgFreq >= 1){
+            musicBiking.start();
+            musicJogging.pause();
+        }
+    }
 
     /**
      * Implements the fft functionality as an async task
