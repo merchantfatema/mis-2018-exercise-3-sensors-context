@@ -11,33 +11,95 @@
         android:gravity="center_horizontal"
         android:layout_width="match_parent" android:layout_height="match_parent">
 
-        <LinearLayout android:orientation="horizontal"
-            android:gravity="center" android:measureWithLargestChild="true"
-            android:layout_width="match_parent" android:layout_height="wrap_content"
-            android:layout_weight="0">
-
-            <Button
-                android:id="@+id/sensorTab"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Sensor Data"></Button>
-
-            <Button
-                android:id="@+id/songTab"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Select Song"></Button>
-        </LinearLayout>
-
-        <FrameLayout
+        <LinearLayout
+            android:orientation="horizontal"
             android:layout_width="match_parent"
-            android:layout_height="match_parent">
+            android:layout_height="wrap_content">
 
-            <com.github.mikephil.charting.charts.LineChart
-                android:id="@+id/dataGraph"
+            <TextView
+                android:id="@+id/labelSampleRate"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:text="Sample Rate"
+                android:textSize="5pt"
+                android:layout_marginTop="20dp"
+                android:layout_weight="1"/>
+
+            <SeekBar
+                android:id="@+id/sampleRate"
+                android:layout_width="200dp"
+                android:layout_height="wrap_content"
+                android:layout_alignParentLeft="true"
+                android:layout_alignParentTop="true"
+                android:layout_marginTop="20dp"
+                android:max="1000000"
+                android:progress="1"
+                android:min="1" />
+
+            <TextView
+                android:id="@+id/sampleRateValue"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:text="Sample Rate"
+                android:textSize="5pt"
+                android:layout_marginTop="20dp"
+                android:layout_weight="1"/>
+        </LinearLayout>
+        <LinearLayout
+            android:orientation="horizontal"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+
+            <TextView
+                android:id="@+id/labelFftSeekBar"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:focusable="false"
+                android:gravity="center"
+                android:text="FFT Window Size"
+                android:textSize="5pt"
+                android:layout_marginTop="20dp"
+                android:layout_weight="1"/>
+
+            <SeekBar
+                android:id="@+id/fftWindowSize"
+                android:layout_width="200dp"
+                android:layout_height="wrap_content"
+                android:layout_alignParentLeft="true"
+                android:layout_alignParentTop="true"
+                android:layout_marginTop="20dp"
+                android:progress="1"
+                android:max="10"
+                android:min="1" />
+            <TextView
+                android:id="@+id/fftSeekBarValue"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:focusable="false"
+                android:gravity="center"
+                android:text="FFT Window Size"
+                android:textSize="5pt"
+                android:layout_marginTop="20dp"
+                android:layout_weight="1"/>
+
+        </LinearLayout>
+        <ScrollView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+            <LinearLayout
                 android:layout_width="match_parent"
-                android:layout_height="match_parent" />
-        </FrameLayout>
+                android:layout_height="match_parent"
+                android:orientation="vertical">
 
+                <com.github.mikephil.charting.charts.LineChart
+                    android:id="@+id/dataGraph"
+                    android:layout_width="match_parent"
+                    android:layout_height="300dp"/>
+                <com.github.mikephil.charting.charts.LineChart
+                    android:id="@+id/fftGraph"
+                    android:layout_width="match_parent"
+                    android:layout_height="200dp" />
+            </LinearLayout>
+        </ScrollView>
     </LinearLayout>
 </android.support.constraint.ConstraintLayout>
