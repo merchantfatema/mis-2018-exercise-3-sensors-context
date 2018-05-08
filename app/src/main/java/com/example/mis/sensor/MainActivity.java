@@ -67,8 +67,8 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
                     Check for permissions, if not present ask for permission
      */
     public void inititalise(){
-        getSensorData();
         initialiseSeekBarAndLabel();
+        getSensorData();
         inititaliseMediaPlayer();
         initialiseLocationService();
     }
@@ -143,7 +143,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         @Purpose: To initialise media for playing music while joggine/biking
     */
     public void inititaliseMediaPlayer(){
-        musicJogging = MediaPlayer.create(this, R.raw.these_days);
+        musicJogging = MediaPlayer.create(this, R.raw.dilbaro);
         musicBiking = MediaPlayer.create(this, R.raw.total_breakdown);
     }
 
@@ -157,6 +157,8 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
             HelperClass.showToastMessage("No location permission" , this);
             ActivityCompat.requestPermissions(this,
                                         new String[]{Manifest.permission.ACCESS_FINE_LOCATION},1);
+            String locationProvider = LocationManager.GPS_PROVIDER;
+
         }
     }
     /*
@@ -283,21 +285,54 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         double[] freqCountsTemp;
         double avgFreq = 0.0;
         freqCountsTemp = freqCounts;
-        for (int i=0; i< freqCountsTemp.length; i++){
+        avgFreq = freqCountsTemp[freqCountsTemp.length -1];
+        /*for (int i=0; i< freqCountsTemp.length; i++){
             avgFreq += freqCountsTemp[i];
             avgFreq = avgFreq/freqCountsTemp.length;
-        }
+        }*/
         Log.d("####avgFreq:" , String.valueOf(avgFreq));
-        if( avgFreq < 1){
+        if( avgFreq > 2){
             musicJogging.start();
-            musicBiking.pause();
+            pauseBikeMusic();
         }
-        else if( avgFreq >= 1){
+        else if( avgFreq <= 2 && avgFreq >= 0.9){
             musicBiking.start();
+            pauseJogMusic();
+        }
+        else if( avgFreq <= 0){
+            pauseJogMusic();
+            pauseBikeMusic();
+        }
+    }
+
+    private void pauseJogMusic(){
+        if( musicJogging.isPlaying()){
             musicJogging.pause();
         }
     }
 
+    private void pauseBikeMusic(){
+        if(musicBiking.isPlaying()){
+            musicBiking.pause();
+        }
+    }
+    //When user moves out of the app, stop playing the music & unregister the sensor
+    @Override
+    public void onPause() {
+        super.onPause();  // Always call the superclass method first
+
+        // Release the Camera because we don't need it when paused
+        // and other activities might need to use it.
+        mSensorManager.unregisterListener(MainActivity.this);
+        musicJogging.pause();
+        musicBiking.pause();
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        mSensorManager.registerListener(MainActivity.this, mSensor, sampleRate);
+    }
     /**
      * Implements the fft functionality as an async task
      * FFT(int n): constructor with fft length
