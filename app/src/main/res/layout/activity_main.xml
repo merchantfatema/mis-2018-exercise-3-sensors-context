@@ -32,9 +32,9 @@
                 android:layout_alignParentLeft="true"
                 android:layout_alignParentTop="true"
                 android:layout_marginTop="20dp"
-                android:max="1000000"
-                android:progress="10000"
-                android:min="0" />
+                android:max="20"
+                android:progress="1"
+                android:min="1" />
 
             <TextView
                 android:id="@+id/sampleRateValue"
@@ -68,7 +68,7 @@
                 android:layout_alignParentLeft="true"
                 android:layout_alignParentTop="true"
                 android:layout_marginTop="20dp"
-                android:progress="3"
+                android:progress="1"
                 android:max="10"
                 android:min="1" />
             <TextView
@@ -82,6 +82,30 @@
                 android:layout_marginTop="20dp"
                 android:layout_weight="1"/>
 
+        </LinearLayout>
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:focusable="false"
+                android:gravity="start"
+                android:text="Location Speed: "
+                android:textSize="5pt"
+                android:layout_marginTop="10dp"
+                android:layout_marginBottom="10dp"
+                android:layout_weight="1"/>
+            <TextView
+                android:id="@+id/locationSpeed"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:gravity="center_horizontal"
+                android:textSize="5pt"
+                android:layout_marginTop="10dp"
+                android:layout_marginBottom="10dp"
+                android:layout_weight="1"/>
         </LinearLayout>
         <ScrollView
             android:layout_width="match_parent"

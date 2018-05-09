@@ -8,6 +8,8 @@ import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
+import android.location.Location;
+import android.location.LocationListener;
 import android.location.LocationManager;
 import android.media.MediaPlayer;
 import android.os.AsyncTask;
@@ -28,7 +30,7 @@ import java.util.List;
 import java.util.Random;
 
 public class MainActivity extends AppCompatActivity implements SensorEventListener,
-                            SeekBar.OnSeekBarChangeListener {
+                            SeekBar.OnSeekBarChangeListener, LocationListener {
 
     //example variables
     private double[] rndAccExamplevalues;
@@ -42,12 +44,13 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     private List<Entry> magnitudeList = new ArrayList<>();
     private static int chartListSize = 10;
     private SeekBar sampleRateSeekBar, fftWindowSizeSeekBar;
-    private TextView sampleRateValue, fftSeekBarValue;
-    private int sampleRate, fftWindowSize;
-    private int axisEntryIndex = 0, wSize = 64, magnitudeIndex = 0;
+    private TextView sampleRateValue, fftSeekBarValue,locationSpeed;
+    private int sampleRate,axisEntryIndex = 0, wSize = 64, magnitudeIndex = 0;
     private double[] magnitudeArray = new double[wSize];
     private MediaPlayer musicJogging, musicBiking;
     private LocationManager mLocationManager;
+    Boolean isProviderEnabled;
+    double speed;
 
 
     @Override
@@ -66,11 +69,15 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         @Purpose: To initialise the app
                     Check for permissions, if not present ask for permission
      */
+
     public void inititalise(){
+
+        sampleRate = 100000; //in microseconds = 0.1 seconds
         initialiseSeekBarAndLabel();
         getSensorData();
         inititaliseMediaPlayer();
         initialiseLocationService();
+        locationSpeed = (TextView) findViewById(R.id.locationSpeed);
     }
 
     /*
@@ -93,18 +100,21 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         fftWindowSizeSeekBar = (SeekBar)findViewById(R.id.fftWindowSize);
         sampleRateValue = (TextView) findViewById(R.id.sampleRateValue);
         fftSeekBarValue = (TextView) findViewById(R.id.fftSeekBarValue);
-        sampleRate = sampleRateSeekBar.getProgress();
-        sampleRateValue.setText(String.valueOf(sampleRate));
+        sampleRateValue.setText("0.1 sec");
         fftSeekBarValue.setText(String.valueOf(fftWindowSizeSeekBar.getProgress()));
-        sampleRateSeekBar.incrementProgressBy(10000);
+        sampleRateSeekBar.incrementProgressBy(1);
 
         sampleRateSeekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+
             @Override
             public void onProgressChanged(SeekBar seekBar, int progress, boolean b) {
                 if( progress == 0 ){
                     progress = 1;
                 }
-                sampleRateValue.setText(String.valueOf(progress));
+                //progress = progress * 1000;
+                float temp = progress;
+                temp /= 10;
+                sampleRateValue.setText(String.valueOf(temp) + " sec");
             }
 
             @Override public void onStartTrackingTouch(SeekBar seekBar) {}
@@ -114,11 +124,15 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
                 if( progress == 0 ){
                     progress = 1;
                 }
-                updateChartData();
-                seekBar.setProgress(progress );
-                sampleRate = progress;
+                //progress = progress*1000;
+                float temp = progress;
+                temp /= 10;
+                seekBar.setProgress( progress );
+                sampleRate = progress * 100000;
+                Log.d("###sampleRate: " , String.valueOf(temp) + " sec");
                 mSensorManager.unregisterListener(MainActivity.this);
                 mSensorManager.registerListener(MainActivity.this, mSensor, sampleRate);
+                updateChartData();
             }
         });
 
@@ -127,14 +141,19 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
                 if( progress == 0 ){
                     progress = 1;
                 }
-                fftSeekBarValue.setText(String.valueOf(progress));
+                int tempSize = (int) Math.pow(2, progress);;
+                fftSeekBarValue.setText(String.valueOf(tempSize));
             }
             @Override public void onStartTrackingTouch(SeekBar seekBar) {}
             @Override public void onStopTrackingTouch(SeekBar seekBar) {
                 int progress = seekBar.getProgress();
-                fftSeekBarValue.setText(String.valueOf(progress));
+
                 wSize = (int) Math.pow(2, progress);;
-                magnitudeArray = new double[wSize];
+                fftSeekBarValue.setText(String.valueOf(wSize));
+                if(magnitudeIndex > wSize){
+                    magnitudeIndex = wSize-1;
+                    magnitudeArray = new double[wSize];
+                }
             }
         });
     }
@@ -157,9 +176,8 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
             HelperClass.showToastMessage("No location permission" , this);
             ActivityCompat.requestPermissions(this,
                                         new String[]{Manifest.permission.ACCESS_FINE_LOCATION},1);
-            String locationProvider = LocationManager.GPS_PROVIDER;
-
         }
+        isProviderEnabled = mLocationManager.isProviderEnabled(LocationManager.GPS_PROVIDER);
     }
     /*
         @Purpose: Initialise Sensor
@@ -169,7 +187,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         if (mSensorManager != null
             && mSensorManager.getDefaultSensor(Sensor.TYPE_LINEAR_ACCELERATION) != null){
             mSensor = mSensorManager.getDefaultSensor(Sensor.TYPE_LINEAR_ACCELERATION);
-            mSensorManager.registerListener(this, mSensor, SensorManager.SENSOR_DELAY_NORMAL);
+            mSensorManager.registerListener(this, mSensor, sampleRate);
             return true;
         }
         return false;
@@ -178,15 +196,19 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     @Override
     public void onSensorChanged(SensorEvent event) {
 
-        if( magnitudeIndex <= wSize){
-            updateChartData( event );
+
+        if( magnitudeIndex == wSize){
             FFTAsynctask fftAsynctask = new FFTAsynctask(wSize);
             fftAsynctask.execute(magnitudeArray);
         }
-        else{
+        else if( magnitudeIndex > wSize){
             magnitudeArray = new double[wSize];
             magnitudeIndex = 0;
         }
+        else if( magnitudeIndex < wSize){
+            Log.d("###Magnitue Index:", String.valueOf(magnitudeIndex));
+        }
+        updateChartData( event );
     }
 
     /*
@@ -209,7 +231,20 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         if( magnitudeList.size() >= chartListSize)
             magnitudeList.remove(0);
 
-        magnitudeArray[magnitudeIndex] =  magnitude;
+        if( magnitudeIndex < magnitudeArray.length){
+            Log.d("magnitudeArray.lengthv: " , String.valueOf(magnitudeArray.length));
+            Log.d("wSize::: " , String.valueOf(wSize));
+            Log.d("magnitudeIndex::: " , String.valueOf(magnitudeIndex));
+            if(magnitudeArray.length <= wSize){
+                magnitudeArray[magnitudeIndex] =  magnitude;
+                magnitudeIndex++;
+            }
+        }
+        else{
+            magnitudeIndex = 0;
+            magnitudeArray = new double[wSize];
+        }
+        Log.d("Magnitude Index:" ,  String.valueOf(magnitudeIndex));
         axisEntryIndex += 1;
         xValueList.add( new Entry( axisEntryIndex, x));
         yValueList.add( new Entry( axisEntryIndex, y));
@@ -290,18 +325,25 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
             avgFreq += freqCountsTemp[i];
             avgFreq = avgFreq/freqCountsTemp.length;
         }*/
-        Log.d("####avgFreq:" , String.valueOf(avgFreq));
-        if( avgFreq > 2){
-            musicJogging.start();
-            pauseBikeMusic();
-        }
-        else if( avgFreq <= 2 && avgFreq >= 0.9){
+        //Log.d("####avgFreq:" , String.valueOf(avgFreq));
+        if( avgFreq >= 2.7 && avgFreq < 5.6){ //Person is biking
+            //https://en.wikipedia.org/wiki/Bicycle_performance
+
             musicBiking.start();
             pauseJogMusic();
         }
-        else if( avgFreq <= 0){
+        else if( avgFreq < 2.7 && avgFreq >= 1.7){
+            //https://www.curejoy.com/content/average-jogging-speed/
+            musicJogging.start();
+            pauseBikeMusic();
+        }
+        else if( avgFreq <= 1.7 || avgFreq > 6){ //If not jogging or biking
             pauseJogMusic();
             pauseBikeMusic();
+        }
+
+        if( isProviderEnabled ){
+
         }
     }
 
@@ -333,6 +375,34 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         super.onResume();
         mSensorManager.registerListener(MainActivity.this, mSensor, sampleRate);
     }
+
+    @Override
+    public void onLocationChanged(Location location) {
+        speed = location.getSpeed();
+        Log.d("speed: " , String.valueOf(speed));
+        Double tempSpeed = speed;
+        if( tempSpeed == null ){
+
+            tempSpeed = 0.0;
+        }
+        locationSpeed.setText("Location Speed is: " + String.valueOf(tempSpeed));
+    }
+
+    @Override
+    public void onStatusChanged(String provider, int status, Bundle extras) {
+
+    }
+
+    @Override
+    public void onProviderEnabled(String provider) {
+
+    }
+
+    @Override
+    public void onProviderDisabled(String provider) {
+
+    }
+
     /**
      * Implements the fft functionality as an async task
      * FFT(int n): constructor with fft length
