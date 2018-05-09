@@ -45,7 +45,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     private static int chartListSize = 10;
     private SeekBar sampleRateSeekBar, fftWindowSizeSeekBar;
     private TextView sampleRateValue, fftSeekBarValue,locationSpeed;
-    private int sampleRate,axisEntryIndex = 0, wSize = 64, magnitudeIndex = 0;
+    private int sampleRate,axisEntryIndex = 0, wSize, magnitudeIndex = 0;
     private double[] magnitudeArray = new double[wSize];
     private MediaPlayer musicJogging, musicBiking;
     private LocationManager mLocationManager;
@@ -73,11 +73,13 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     public void inititalise(){
 
         sampleRate = 100000; //in microseconds = 0.1 seconds
+        wSize = 8;
         initialiseSeekBarAndLabel();
         getSensorData();
         inititaliseMediaPlayer();
         initialiseLocationService();
         locationSpeed = (TextView) findViewById(R.id.locationSpeed);
+        locationSpeed.setText("0 km/h");
     }
 
     /*
@@ -101,7 +103,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         sampleRateValue = (TextView) findViewById(R.id.sampleRateValue);
         fftSeekBarValue = (TextView) findViewById(R.id.fftSeekBarValue);
         sampleRateValue.setText("0.1 sec");
-        fftSeekBarValue.setText(String.valueOf(fftWindowSizeSeekBar.getProgress()));
+        fftSeekBarValue.setText(String.valueOf(wSize));
         sampleRateSeekBar.incrementProgressBy(1);
 
         sampleRateSeekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
@@ -148,7 +150,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
             @Override public void onStopTrackingTouch(SeekBar seekBar) {
                 int progress = seekBar.getProgress();
 
-                wSize = (int) Math.pow(2, progress);;
+                wSize = (int) Math.pow(2, progress);
                 fftSeekBarValue.setText(String.valueOf(wSize));
                 if(magnitudeIndex > wSize){
                     magnitudeIndex = wSize-1;
@@ -232,9 +234,6 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
             magnitudeList.remove(0);
 
         if( magnitudeIndex < magnitudeArray.length){
-            Log.d("magnitudeArray.lengthv: " , String.valueOf(magnitudeArray.length));
-            Log.d("wSize::: " , String.valueOf(wSize));
-            Log.d("magnitudeIndex::: " , String.valueOf(magnitudeIndex));
             if(magnitudeArray.length <= wSize){
                 magnitudeArray[magnitudeIndex] =  magnitude;
                 magnitudeIndex++;

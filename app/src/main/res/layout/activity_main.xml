@@ -14,7 +14,8 @@
         <LinearLayout
             android:orientation="horizontal"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content">
+            android:layout_height="wrap_content"
+            android: >
 
             <TextView
                 android:id="@+id/labelSampleRate"
@@ -68,7 +69,7 @@
                 android:layout_alignParentLeft="true"
                 android:layout_alignParentTop="true"
                 android:layout_marginTop="20dp"
-                android:progress="1"
+                android:progress="2"
                 android:max="10"
                 android:min="1" />
             <TextView
@@ -88,7 +89,7 @@
             android:layout_height="wrap_content"
             android:orientation="horizontal">
             <TextView
-                android:layout_width="wrap_content"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:focusable="false"
                 android:gravity="start"
@@ -99,9 +100,9 @@
                 android:layout_weight="1"/>
             <TextView
                 android:id="@+id/locationSpeed"
-                android:layout_width="wrap_content"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:gravity="center_horizontal"
+                android:gravity="center"
                 android:textSize="5pt"
                 android:layout_marginTop="10dp"
                 android:layout_marginBottom="10dp"
