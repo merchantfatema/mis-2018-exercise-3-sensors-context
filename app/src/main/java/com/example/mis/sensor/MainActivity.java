@@ -358,35 +358,44 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         float locSpeed = getLocationSpeed();
         //Log.d("####verifyLoc:" , String.valueOf(verifyLoc));
         if(verifyLoc && isProviderEnabled && locSpeed != 9999){
-            if((locSpeed >= 2.7 && locSpeed < 5.6 && avgFreq >= 2.7 && avgFreq < 5.6)){ //Person is biking
+            if((locSpeed >= 2.7 && locSpeed < 5.6 && avgFreq >= 15 && avgFreq <= 25)){ //If biking
                 //https://en.wikipedia.org/wiki/Bicycle_performance
                 if(!musicBiking.isPlaying()){ musicBiking.start(); }
                 pauseJogMusic();
             }
-            else if( locSpeed < 2.7 && locSpeed >= 5.6 && avgFreq < 2.7 && avgFreq >= 0.7 ){
+            else if( locSpeed < 2.7 && locSpeed >= 1.3 && avgFreq < 15 && avgFreq >= 5 ){//If jogging
                 //https://www.curejoy.com/content/average-jogging-speed/
                 if(!musicJogging.isPlaying()){ musicJogging.start();}
                 pauseBikeMusic();
             }
-            else if( locSpeed == 0 ){ //If not jogging or biking
-                //Have ket minimum avgFreq as 0.9 as person can become slower while doing an activity.
+            else if( locSpeed == 0 && avgFreq < 5 && avgFreq > 25){ //If not jogging or biking
+                //Have kept minimum avgFreq as 0.9 as person can become slower while doing an activity.
                 pauseJogMusic();
                 pauseBikeMusic();
             }
         }
         else{
-            if( avgFreq < 5.6 && avgFreq >= 2.7 ){ //Person is biking
+            if(  avgFreq <= 25 && avgFreq >= 15 ){ //Person is biking
                 if(!musicBiking.isPlaying()){ musicBiking.start(); }
                 pauseJogMusic();
             }
-            else if( avgFreq < 2.7 && avgFreq >= 0.7 ){
+            else if( avgFreq < 15 && avgFreq >= 2 ){
                 if(!musicJogging.isPlaying()){ musicJogging.start();}
                 pauseBikeMusic();
             }
-            else if( avgFreq <= 0.7 || avgFreq > 6){ //If not jogging or biking
+            else if( avgFreq < 2 || avgFreq > 25){ //If not jogging or biking
                 //Have ket minimum avgFreq as 0.9 as person can become slower while doing an activity.
-                pauseJogMusic();
-                pauseBikeMusic();
+                new java.util.Timer().schedule(
+                        new java.util.TimerTask() {
+                            @Override
+                            public void run() {
+                                // your code here
+                                pauseJogMusic();
+                                pauseBikeMusic();
+                            }
+                        },
+                        2000
+                );
             }
         }
     }
