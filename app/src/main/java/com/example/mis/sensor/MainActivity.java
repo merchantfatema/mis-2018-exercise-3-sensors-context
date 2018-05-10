@@ -328,7 +328,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         Location location = mLocationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
         Log.d("@@@@location:" , String.valueOf(location));
         Log.d("@@@@location HAS SPEED:" , String.valueOf(location.hasSpeed()));
-        float speed1 = 0;
+        float speed1 = 9999;
         if (location != null && location.hasSpeed()) {
             speed1 = (int) (location.getSpeed() * 3.6);
             Log.d("speed1: " , String.valueOf(speed1));
@@ -349,15 +349,16 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         }*/
         //Log.d("####avgFreq:" , String.valueOf(avgFreq));
 
-        float locaSpeed = getLocationSpeed();
+        float locSpeed = getLocationSpeed();
 
-        if( avgFreq >= 2.7 && avgFreq < 5.6){ //Person is biking
+        if( (isProviderEnabled && locSpeed != 9999 && locSpeed >= 2.7 && locSpeed < 5.6 && avgFreq >= 2.7 && avgFreq < 5.6)
+                || (avgFreq >= 2.7 && avgFreq < 5.6) ){ //Person is biking
             //https://en.wikipedia.org/wiki/Bicycle_performance
-
             musicBiking.start();
             pauseJogMusic();
         }
-        else if( avgFreq < 2.7 && avgFreq >= 1.7){
+        else if( (isProviderEnabled && locSpeed != 9999 && locSpeed < 2.7 && locSpeed >= 5.6 && avgFreq < 2.7 && avgFreq >= 1.7)
+                ||  ( avgFreq < 2.7 && avgFreq >= 1.7)){
             //https://www.curejoy.com/content/average-jogging-speed/
             musicJogging.start();
             pauseBikeMusic();
@@ -365,10 +366,6 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         else if( avgFreq <= 1.7 || avgFreq > 6){ //If not jogging or biking
             pauseJogMusic();
             pauseBikeMusic();
-        }
-
-        if( isProviderEnabled && locaSpeed != 0 ){
-            Log.d("Getting locatio","########");
         }
     }
 
