@@ -20,8 +20,9 @@
                 android:id="@+id/labelSampleRate"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:text="Sample Rate"
+                android:text="Sample Rate (sec)"
                 android:textSize="5pt"
+                android:gravity="center"
                 android:layout_marginTop="20dp"
                 android:layout_weight="1"/>
 
@@ -40,7 +41,6 @@
                 android:id="@+id/sampleRateValue"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:text="Sample Rate"
                 android:textSize="5pt"
                 android:layout_marginTop="20dp"
                 android:layout_weight="1"/>
@@ -76,7 +76,6 @@
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:focusable="false"
-                android:gravity="center"
                 android:text="FFT Window Size"
                 android:textSize="5pt"
                 android:layout_marginTop="20dp"
@@ -91,8 +90,8 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:focusable="false"
-                android:gravity="start"
-                android:text="Location Speed: "
+                android:gravity="center"
+                android:text="Location Speed (m/s)"
                 android:textSize="5pt"
                 android:layout_marginTop="10dp"
                 android:layout_marginBottom="10dp"
@@ -107,18 +106,33 @@
                 android:layout_marginBottom="10dp"
                 android:layout_weight="1"/>
         </LinearLayout>
+        <CheckBox android:id="@+id/checkbox_meat"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Enable Location Verification"
+            android:onClick="onCheckboxClicked"/>
         <ScrollView
             android:layout_width="match_parent"
-            android:layout_height="wrap_content">
+            android:layout_height="wrap_content"
+            android:layout_marginTop="5dp">
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
                 android:orientation="vertical">
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Accelerometer Data"/>
 
                 <com.github.mikephil.charting.charts.LineChart
                     android:id="@+id/dataGraph"
                     android:layout_width="match_parent"
-                    android:layout_height="300dp"/>
+                    android:layout_height="300dp"
+                    android:layout_marginBottom="10dp"/>
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="FFT Chart"/>
                 <com.github.mikephil.charting.charts.LineChart
                     android:id="@+id/fftGraph"
                     android:layout_width="match_parent"

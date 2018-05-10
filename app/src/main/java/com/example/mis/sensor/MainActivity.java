@@ -18,10 +18,13 @@ import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.View;
+import android.widget.CheckBox;
 import android.widget.SeekBar;
 import android.widget.TextView;
 
 import com.github.mikephil.charting.charts.LineChart;
+import com.github.mikephil.charting.components.Description;
 import com.github.mikephil.charting.data.Entry;
 import com.github.mikephil.charting.data.LineData;
 import com.github.mikephil.charting.data.LineDataSet;
@@ -51,7 +54,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     private MediaPlayer musicJogging, musicBiking;
     private LocationManager mLocationManager;
     Boolean isProviderEnabled;
-    double speed;
+    boolean verifyLoc;
 
 
     @Override
@@ -80,7 +83,14 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         inititaliseMediaPlayer();
         initialiseLocationService();
         locationSpeed = (TextView) findViewById(R.id.locationSpeed);
-        locationSpeed.setText("0 km/h");
+        locationSpeed.setText("0");
+    }
+
+    /*
+        @Purpose: To update variable to check or not to check location verifiaction
+     */
+    public void onCheckboxClicked( View v ){
+        verifyLoc = ((CheckBox) v).isChecked();
     }
 
     /*
@@ -103,7 +113,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         fftWindowSizeSeekBar = (SeekBar)findViewById(R.id.fftWindowSize);
         sampleRateValue = (TextView) findViewById(R.id.sampleRateValue);
         fftSeekBarValue = (TextView) findViewById(R.id.fftSeekBarValue);
-        sampleRateValue.setText("0.1 sec");
+        sampleRateValue.setText("0.1");
         fftSeekBarValue.setText(String.valueOf(wSize));
         sampleRateSeekBar.incrementProgressBy(1);
 
@@ -117,7 +127,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
                 //progress = progress * 1000;
                 float temp = progress;
                 temp /= 10;
-                sampleRateValue.setText(String.valueOf(temp) + " sec");
+                sampleRateValue.setText(String.valueOf(temp));
             }
 
             @Override public void onStartTrackingTouch(SeekBar seekBar) {}
@@ -132,7 +142,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
                 temp /= 10;
                 seekBar.setProgress( progress );
                 sampleRate = progress * 100000;
-                Log.d("###sampleRate: " , String.valueOf(temp) + " sec");
+                Log.d("###sampleRate: " , String.valueOf(temp));
                 mSensorManager.unregisterListener(MainActivity.this);
                 mSensorManager.registerListener(MainActivity.this, mSensor, sampleRate);
                 updateChartData();
@@ -153,9 +163,20 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
 
                 wSize = (int) Math.pow(2, progress);
                 fftSeekBarValue.setText(String.valueOf(wSize));
-                if(magnitudeIndex > wSize){
-                    magnitudeIndex = wSize-1;
+
+                if( magnitudeIndex > wSize){
                     magnitudeArray = new double[wSize];
+                    magnitudeIndex = 0;
+                }
+                else if( magnitudeIndex < wSize){
+
+                    double[] tempArray = new double[wSize];
+                    tempArray = magnitudeArray;
+
+                    magnitudeArray = new double[wSize];
+                    for( int i = 0; i <= magnitudeIndex; i++ ){
+                        magnitudeArray[i] = tempArray[i];
+                    }
                 }
             }
         });
@@ -211,13 +232,6 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
             FFTAsynctask fftAsynctask = new FFTAsynctask(wSize);
             fftAsynctask.execute(magnitudeArray);
         }
-        else if( magnitudeIndex > wSize){
-            magnitudeArray = new double[wSize];
-            magnitudeIndex = 0;
-        }
-        else if( magnitudeIndex < wSize){
-            //Log.d("###Magnitue Index:", String.valueOf(magnitudeIndex));
-        }
         updateChartData( event );
     }
 
@@ -251,23 +265,13 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
             magnitudeIndex = 0;
             magnitudeArray = new double[wSize];
         }
-        //Log.d("Magnitude Index:" ,  String.valueOf(magnitudeIndex));
         axisEntryIndex += 1;
         xValueList.add( new Entry( axisEntryIndex, x));
         yValueList.add( new Entry( axisEntryIndex, y));
         zValueList.add( new Entry( axisEntryIndex, z));
         magnitudeList.add( new Entry( axisEntryIndex, magnitude));
 
-        LineChart graph = (LineChart) findViewById(R.id.dataGraph);
-        LineData lineData = new LineData();
-        lineData.addDataSet(addLineData( xValueList, "X" , Color.RED));
-        lineData.addDataSet(addLineData( yValueList, "Y" , Color.GREEN ));
-        lineData.addDataSet(addLineData( zValueList, "Z" , Color.BLUE));
-        lineData.addDataSet(addLineData( magnitudeList, "Magnitude" , Color.BLACK));
-
-        graph.setData(lineData);
-        graph.notifyDataSetChanged();
-        graph.invalidate();
+        updateChartData();
     }
 
     /*
@@ -279,8 +283,10 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         lineData.addDataSet(addLineData( xValueList, "X" , Color.RED));
         lineData.addDataSet(addLineData( yValueList, "Y" , Color.GREEN ));
         lineData.addDataSet(addLineData( zValueList, "Z" , Color.BLUE));
-        lineData.addDataSet(addLineData( magnitudeList, "Magnitude" , Color.BLACK));
-
+        lineData.addDataSet(addLineData( magnitudeList, "Magnitude" , Color.WHITE));
+        graph.setBackgroundColor(Color.DKGRAY);
+        graph.setDescription(new Description());
+        graph.setGridBackgroundColor(Color.BLACK);
         graph.setData(lineData);
         graph.notifyDataSetChanged();
         graph.invalidate();
@@ -299,6 +305,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         fftGraph.setData(lineData);
         fftGraph.notifyDataSetChanged();
         fftGraph.invalidate();
+        fftGraph.setDescription(new Description());
 
         updateMusic();
     }
@@ -326,46 +333,61 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     private float getLocationSpeed(){
         @SuppressWarnings({"ResourceType"})
         Location location = mLocationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
-        Log.d("@@@@location:" , String.valueOf(location));
-        Log.d("@@@@location HAS SPEED:" , String.valueOf(location.hasSpeed()));
+        //Log.d("@@@@location:" , String.valueOf(location));
+//        Log.d("@@@@location HAS SPEED:" , String.valueOf(location.hasSpeed()));
         float speed1 = 9999;
         if (location != null && location.hasSpeed()) {
             speed1 = (int) (location.getSpeed() * 3.6);
-            Log.d("speed1: " , String.valueOf(speed1));
+            //Log.d("@@@@@speed1: " , String.valueOf(speed1));
             locationSpeed.setText(String.valueOf(speed1));
         }
         return speed1;
     }
 
-
     private void updateMusic(){
         double[] freqCountsTemp;
         double avgFreq = 0.0;
         freqCountsTemp = freqCounts;
-        avgFreq = freqCountsTemp[freqCountsTemp.length -1];
-        /*for (int i=0; i< freqCountsTemp.length; i++){
+        //avgFreq = freqCountsTemp[freqCountsTemp.length -1];
+        for (int i=0; i< freqCountsTemp.length; i++){
             avgFreq += freqCountsTemp[i];
             avgFreq = avgFreq/freqCountsTemp.length;
-        }*/
-        //Log.d("####avgFreq:" , String.valueOf(avgFreq));
+        }
+        Log.d("####avgFreq:" , String.valueOf(avgFreq));
 
         float locSpeed = getLocationSpeed();
-
-        if( (isProviderEnabled && locSpeed != 9999 && locSpeed >= 2.7 && locSpeed < 5.6 && avgFreq >= 2.7 && avgFreq < 5.6)
-                || (avgFreq >= 2.7 && avgFreq < 5.6) ){ //Person is biking
-            //https://en.wikipedia.org/wiki/Bicycle_performance
-            musicBiking.start();
-            pauseJogMusic();
+        //Log.d("####verifyLoc:" , String.valueOf(verifyLoc));
+        if(verifyLoc && isProviderEnabled && locSpeed != 9999){
+            if((locSpeed >= 2.7 && locSpeed < 5.6 && avgFreq >= 2.7 && avgFreq < 5.6)){ //Person is biking
+                //https://en.wikipedia.org/wiki/Bicycle_performance
+                if(!musicBiking.isPlaying()){ musicBiking.start(); }
+                pauseJogMusic();
+            }
+            else if( locSpeed < 2.7 && locSpeed >= 5.6 && avgFreq < 2.7 && avgFreq >= 0.7 ){
+                //https://www.curejoy.com/content/average-jogging-speed/
+                if(!musicJogging.isPlaying()){ musicJogging.start();}
+                pauseBikeMusic();
+            }
+            else if( locSpeed == 0 ){ //If not jogging or biking
+                //Have ket minimum avgFreq as 0.9 as person can become slower while doing an activity.
+                pauseJogMusic();
+                pauseBikeMusic();
+            }
         }
-        else if( (isProviderEnabled && locSpeed != 9999 && locSpeed < 2.7 && locSpeed >= 5.6 && avgFreq < 2.7 && avgFreq >= 1.7)
-                ||  ( avgFreq < 2.7 && avgFreq >= 1.7)){
-            //https://www.curejoy.com/content/average-jogging-speed/
-            musicJogging.start();
-            pauseBikeMusic();
-        }
-        else if( avgFreq <= 1.7 || avgFreq > 6){ //If not jogging or biking
-            pauseJogMusic();
-            pauseBikeMusic();
+        else{
+            if( avgFreq < 5.6 && avgFreq >= 2.7 ){ //Person is biking
+                if(!musicBiking.isPlaying()){ musicBiking.start(); }
+                pauseJogMusic();
+            }
+            else if( avgFreq < 2.7 && avgFreq >= 0.7 ){
+                if(!musicJogging.isPlaying()){ musicJogging.start();}
+                pauseBikeMusic();
+            }
+            else if( avgFreq <= 0.7 || avgFreq > 6){ //If not jogging or biking
+                //Have ket minimum avgFreq as 0.9 as person can become slower while doing an activity.
+                pauseJogMusic();
+                pauseBikeMusic();
+            }
         }
     }
 
@@ -385,8 +407,6 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     public void onPause() {
         super.onPause();  // Always call the superclass method first
 
-        // Release the Camera because we don't need it when paused
-        // and other activities might need to use it.
         mSensorManager.unregisterListener(MainActivity.this);
         musicJogging.pause();
         musicBiking.pause();
@@ -400,7 +420,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
 
     @Override
     public void onLocationChanged(Location location) {
-        if( location != null ){
+        /*if( location != null ){
             speed = location.getSpeed();
             Log.d("$$$$$speed: " , String.valueOf(speed));
             Double tempSpeed = speed;
@@ -408,11 +428,11 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
 
                 tempSpeed = 0.0;
             }
-            locationSpeed.setText(String.valueOf(tempSpeed));
+            locationSpeed.setText("onLocation Changed:" + String.valueOf(tempSpeed));
         }
         else{
             speed = 0.0;
-        }
+        }*/
     }
 
     @Override
