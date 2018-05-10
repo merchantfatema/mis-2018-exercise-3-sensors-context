@@ -2,6 +2,7 @@ package com.example.mis.sensor;
 
 import android.Manifest;
 import android.content.Context;
+import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Color;
 import android.hardware.Sensor;
@@ -180,6 +181,13 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
                                         new String[]{Manifest.permission.ACCESS_FINE_LOCATION},1);
         }
         isProviderEnabled = mLocationManager.isProviderEnabled(LocationManager.GPS_PROVIDER);
+        if( isProviderEnabled ){
+            mLocationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0, 0, this);
+            Intent intent = new Intent("android.location.GPS_ENABLED_CHANGE");
+            intent.putExtra("enabled", true);
+            Log.d("########","Inside");
+        }
+        Log.d("### GPS_PROVIDER:" , String.valueOf(isProviderEnabled));
     }
     /*
         @Purpose: Initialise Sensor
@@ -208,7 +216,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
             magnitudeIndex = 0;
         }
         else if( magnitudeIndex < wSize){
-            Log.d("###Magnitue Index:", String.valueOf(magnitudeIndex));
+            //Log.d("###Magnitue Index:", String.valueOf(magnitudeIndex));
         }
         updateChartData( event );
     }
@@ -243,7 +251,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
             magnitudeIndex = 0;
             magnitudeArray = new double[wSize];
         }
-        Log.d("Magnitude Index:" ,  String.valueOf(magnitudeIndex));
+        //Log.d("Magnitude Index:" ,  String.valueOf(magnitudeIndex));
         axisEntryIndex += 1;
         xValueList.add( new Entry( axisEntryIndex, x));
         yValueList.add( new Entry( axisEntryIndex, y));
@@ -315,6 +323,21 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
 
     @Override public void onStopTrackingTouch(SeekBar seekBar) { }
 
+    private float getLocationSpeed(){
+        @SuppressWarnings({"ResourceType"})
+        Location location = mLocationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
+        Log.d("@@@@location:" , String.valueOf(location));
+        Log.d("@@@@location HAS SPEED:" , String.valueOf(location.hasSpeed()));
+        float speed1 = 0;
+        if (location != null && location.hasSpeed()) {
+            speed1 = (int) (location.getSpeed() * 3.6);
+            Log.d("speed1: " , String.valueOf(speed1));
+            locationSpeed.setText(String.valueOf(speed1));
+        }
+        return speed1;
+    }
+
+
     private void updateMusic(){
         double[] freqCountsTemp;
         double avgFreq = 0.0;
@@ -325,6 +348,9 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
             avgFreq = avgFreq/freqCountsTemp.length;
         }*/
         //Log.d("####avgFreq:" , String.valueOf(avgFreq));
+
+        float locaSpeed = getLocationSpeed();
+
         if( avgFreq >= 2.7 && avgFreq < 5.6){ //Person is biking
             //https://en.wikipedia.org/wiki/Bicycle_performance
 
@@ -341,8 +367,8 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
             pauseBikeMusic();
         }
 
-        if( isProviderEnabled ){
-
+        if( isProviderEnabled && locaSpeed != 0 ){
+            Log.d("Getting locatio","########");
         }
     }
 
@@ -377,14 +403,19 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
 
     @Override
     public void onLocationChanged(Location location) {
-        speed = location.getSpeed();
-        Log.d("speed: " , String.valueOf(speed));
-        Double tempSpeed = speed;
-        if( tempSpeed == null ){
+        if( location != null ){
+            speed = location.getSpeed();
+            Log.d("$$$$$speed: " , String.valueOf(speed));
+            Double tempSpeed = speed;
+            if( tempSpeed == null ){
 
-            tempSpeed = 0.0;
+                tempSpeed = 0.0;
+            }
+            locationSpeed.setText(String.valueOf(tempSpeed));
         }
-        locationSpeed.setText("Location Speed is: " + String.valueOf(tempSpeed));
+        else{
+            speed = 0.0;
+        }
     }
 
     @Override
