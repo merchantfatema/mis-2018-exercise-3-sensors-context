@@ -213,9 +213,9 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
             mLocationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0, 0, this);
             Intent intent = new Intent("android.location.GPS_ENABLED_CHANGE");
             intent.putExtra("enabled", true);
-            Log.d("########","Inside");
+            //Log.d("########","Inside");
         }
-        Log.d("### GPS_PROVIDER:" , String.valueOf(isProviderEnabled));
+        //Log.d("### GPS_PROVIDER:" , String.valueOf(isProviderEnabled));
     }
     /*
         @Purpose: Initialise Sensor
