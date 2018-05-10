@@ -1,3 +1,10 @@
+/*
+ * Name: Exercise 3
+ * Created Date: 10 May, 2018
+ * Purpose: Accelerometer & FFT
+ * Student Name: Fatema Merchant
+ * Student Id: 119431
+ * */
 package com.example.mis.sensor;
 
 import android.Manifest;
