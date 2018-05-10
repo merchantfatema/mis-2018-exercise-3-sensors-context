@@ -1,0 +1,42 @@
+/*
+ * Name: Exercise 3
+ * Created Date: 2 May, 2018
+ * Purpose: Accelerometer & FFT
+ * Student Name: Fatema Merchant
+ * Student Id: 119431
+ * */
+
+
+https://developer.android.com/guide/topics/sensors/sensors_overview#sensors-coords
+
+https://www.youtube.com/watch?v=QEbljbZ4dNs
+
+Mp-Android Chart:
+https://github.com/PhilJay/MPAndroidChart/wiki/Getting-Started
+https://github.com/PhilJay/MPAndroidChart/wiki/Dynamic-&-Realtime-Data
+
+https://developer.android.com/reference/android/support/v4/app/FragmentPagerAdapter
+
+Sensor Data Reading:
+
+https://developer.android.com/reference/android/hardware/SensorEvent#values
+https://www.w3.org/TR/accelerometer/
+
+To add scrollbar to layout
+https://stackoverflow.com/questions/18150892/set-a-linearlayout-to-scroll
+
+To add Seekbar:
+https://examples.javacodegeeks.com/android/core/widget/seekbar/android-seekbar-example/
+
+To add label to Seek Bar:
+https://stackoverflow.com/questions/41757786/add-labels-above-seekbars-steps-with-different-font-size-vertically-aligned-to
+
+To Create Assets:
+http://abhiandroid.com/androidstudio/add-audio-android-studio.html
+http://abhiandroid.com/androidstudio/create-raw-folder-android-studio.html
+
+Music Files:
+http://freemusicarchive.org/curator/Creative_Commons/
+
+How do app know the difference between diffferent activities:
+https://www.quora.com/How-do-GPS-Android-apps-know-the-difference-between-walking-running-or-cycling
