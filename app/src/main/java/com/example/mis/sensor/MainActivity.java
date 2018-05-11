@@ -358,30 +358,30 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         //avgFreq = freqCountsTemp[freqCountsTemp.length -1];
         for (int i=0; i< freqCountsTemp.length; i++){
             avgFreq += freqCountsTemp[i];
-            avgFreq = avgFreq/freqCountsTemp.length;
         }
+        avgFreq = avgFreq/freqCountsTemp.length;
         Log.d("####avgFreq:" , String.valueOf(avgFreq));
 
         float locSpeed = getLocationSpeed();
-        //Log.d("####verifyLoc:" , String.valueOf(verifyLoc));
         if(verifyLoc && isProviderEnabled && locSpeed != 9999){
             if((locSpeed >= 2.7 && locSpeed < 5.6 && avgFreq >= 15 && avgFreq <= 25)){ //If biking
                 //https://en.wikipedia.org/wiki/Bicycle_performance
                 if(!musicBiking.isPlaying()){ musicBiking.start(); }
                 pauseJogMusic();
             }
-            else if( locSpeed < 2.7 && locSpeed >= 1.3 && avgFreq < 15 && avgFreq >= 5 ){//If jogging
+            else if( locSpeed < 2.7 && locSpeed >= 1.3 && avgFreq < 15 && avgFreq >= 2 ){//If jogging
                 //https://www.curejoy.com/content/average-jogging-speed/
                 if(!musicJogging.isPlaying()){ musicJogging.start();}
                 pauseBikeMusic();
             }
-            else if( locSpeed == 0 && avgFreq < 5 && avgFreq > 25){ //If not jogging or biking
+            else if( locSpeed == 0 && avgFreq < 2 && avgFreq > 25){ //If not jogging or biking
                 //Have kept minimum avgFreq as 0.9 as person can become slower while doing an activity.
                 pauseJogMusic();
                 pauseBikeMusic();
             }
         }
         else{
+
             if(  avgFreq <= 25 && avgFreq >= 15 ){ //Person is biking
                 if(!musicBiking.isPlaying()){ musicBiking.start(); }
                 pauseJogMusic();
